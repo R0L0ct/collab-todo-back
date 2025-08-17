@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - 5430:5432
+    volumes:
+      - postgres_todo:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=rolo1234
+      - POSTGRES_USER=rolo
+      - POSTGRES_DB=todo-db
+
+volumes:
+  postgres_todo:
