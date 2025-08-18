@@ -18,7 +18,9 @@ export class TodoService {
 
   async findAll(): Promise<any[]> {
     try {
-      const response = await this.prisma.todo.findMany();
+      const response = await this.prisma.todo.findMany({
+        orderBy: { id: 'asc' },
+      });
       return response;
     } catch (err) {
       console.log(err);
