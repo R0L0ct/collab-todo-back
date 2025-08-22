@@ -13,7 +13,7 @@ export class CreateTodoDto {
 
   @IsBoolean()
   @IsOptional()
-  isCompleted: boolean;
+  isCompleted?: boolean;
 
   @IsOptional()
   @IsDate()
