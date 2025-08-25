@@ -20,6 +20,7 @@ export class TodoService {
     try {
       const response = await this.prisma.todo.findMany({
         orderBy: { id: 'asc' },
+        include: { user: { select: { username: true } } },
       });
       return response;
     } catch (err) {

@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Response } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Request,
+  Response,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -38,6 +46,22 @@ export class AuthController {
     try {
       const response = await this.authService.register(user);
       return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('refresh-token')
+  async refreshAccessToken(@Request() req: any) {
+    try {
+      const token = req.cookies['todo_refresh'];
+      if (!token) {
+        throw new UnauthorizedException('No refresh token found');
+      }
+
+      const response = await this.authService.refreshAccessToken(token);
+
+      return response.auth;
     } catch (error) {
       throw error;
     }

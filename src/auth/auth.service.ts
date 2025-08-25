@@ -25,7 +25,7 @@ export class AuthService {
           access_token: await this.jwtService.signAsync(payload, {
             expiresIn: '15m',
           }),
-          user: user.username,
+          user: { username: user.username, userId: user.id },
         },
       };
     } catch (error) {
@@ -41,6 +41,31 @@ export class AuthService {
         username: user.username,
         password: hashPass,
       });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async refreshAccessToken(refreshToken: string) {
+    try {
+      if (!refreshToken) throw new BadRequestException('token inexistente');
+
+      const isValid = await this.jwtService.verify(refreshToken);
+
+      if (!isValid) throw new BadRequestException('hubo un error');
+
+      const payload = await this.jwtService.decode(refreshToken);
+
+      const { exp, iat, ...rest } = payload;
+
+      return {
+        auth: {
+          access_token: await this.jwtService.signAsync(rest, {
+            expiresIn: '15m',
+          }),
+          user: { username: payload.username, userId: payload.sub },
+        },
+      };
     } catch (error) {
       throw error;
     }

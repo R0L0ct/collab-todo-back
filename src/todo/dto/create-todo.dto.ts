@@ -1,6 +1,7 @@
 import {
   IsBoolean,
   IsDate,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -14,6 +15,10 @@ export class CreateTodoDto {
   @IsBoolean()
   @IsOptional()
   isCompleted?: boolean;
+
+  @IsInt()
+  @IsNotEmpty()
+  userId: number;
 
   @IsOptional()
   @IsDate()
