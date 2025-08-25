@@ -8,21 +8,24 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() user: { username: string; password: string },
-    @Response() res: any,
+    @Response({ passthrough: true }) res: any, //passthrough es necesario para poder alojar el token en las cookies
   ): Promise<any> {
     try {
       const response = await this.authService.login(
         user.username,
         user.password,
       );
-      const { refresh_token } = response;
+
+      const { refresh_token, auth } = response;
 
       await res.cookie('todo_refresh', refresh_token, {
         httpOnly: true,
         secure: false,
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
       });
 
-      return response;
+      return auth;
     } catch (error) {
       throw error;
     }

@@ -18,8 +18,15 @@ export class AuthService {
 
       const payload = { username: user.username, sub: user.id };
       return {
-        refresh_token: this.jwtService.signAsync(payload, { expiresIn: '7d' }),
-        access_token: this.jwtService.signAsync(payload, { expiresIn: '15m' }),
+        refresh_token: await this.jwtService.signAsync(payload, {
+          expiresIn: '7d',
+        }),
+        auth: {
+          access_token: await this.jwtService.signAsync(payload, {
+            expiresIn: '15m',
+          }),
+          user: user.username,
+        },
       };
     } catch (error) {
       throw error;
