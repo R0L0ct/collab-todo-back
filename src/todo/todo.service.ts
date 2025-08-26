@@ -9,7 +9,10 @@ export class TodoService {
 
   async create(data: CreateTodoDto): Promise<any> {
     try {
-      const response = await this.prisma.todo.create({ data });
+      const response = await this.prisma.todo.create({
+        data,
+        include: { user: { select: { username: true } } },
+      });
       return response;
     } catch (err) {
       console.log(err);
