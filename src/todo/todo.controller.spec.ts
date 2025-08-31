@@ -1,18 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TodoController } from './todo.controller';
 import { TodoService } from './todo.service';
+import { JwtAuthGuard } from '../../src/auth/guards/jwt-auth.guard';
 
 describe('TodoController', () => {
   let controller: TodoController;
   let service: TodoService;
 
   const mockTodoService = {
-    create: jest.fn((data: { task: string }) => ({ id: 1, task: data.task })),
+    create: jest.fn((data: { task: string }) => ({
+      id: 1,
+      task: data.task,
+      user: { username: 'test' },
+    })),
     findOne: jest.fn((id: number) => ({ id, task: 'task' })),
     findAll: jest.fn(() => {
       return [
-        { id: 1, task: 'task_1' },
-        { id: 2, task: 'task_2' },
+        { id: 1, task: 'task_1', user: { username: 'test' } },
+        { id: 2, task: 'task_2', user: { username: 'test' } },
       ];
     }),
     update: jest.fn((id: number, data: { isCompleted: boolean }) => ({
@@ -27,7 +32,12 @@ describe('TodoController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TodoController],
       providers: [{ provide: TodoService, useValue: mockTodoService }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({
+        canActivate: () => true,
+      })
+      .compile();
 
     controller = module.get<TodoController>(TodoController);
     service = module.get<TodoService>(TodoService);
@@ -39,9 +49,16 @@ describe('TodoController', () => {
   });
 
   it('should call service.create function', async () => {
-    const result = await controller.create({ task: 'new task' });
-    expect(service.create).toHaveBeenCalledWith({ task: 'new task' });
-    expect(result).toEqual({ id: 1, task: 'new task' });
+    const result = await controller.create({ task: 'new task', userId: 1 });
+    expect(service.create).toHaveBeenCalledWith({
+      task: 'new task',
+      userId: 1,
+    });
+    expect(result).toEqual({
+      id: 1,
+      task: 'new task',
+      user: { username: 'test' },
+    });
   });
 
   it('should call service.findOne function', async () => {
@@ -54,8 +71,8 @@ describe('TodoController', () => {
     const result = await controller.findAll();
     expect(service.findAll).toHaveBeenCalled();
     expect(result).toEqual([
-      { id: 1, task: 'task_1' },
-      { id: 2, task: 'task_2' },
+      { id: 1, task: 'task_1', user: { username: 'test' } },
+      { id: 2, task: 'task_2', user: { username: 'test' } },
     ]);
   });
 

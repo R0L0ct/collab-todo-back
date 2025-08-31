@@ -26,10 +26,11 @@ describe('TodoService', () => {
       id: 1,
       task: 'new task',
     });
-    const result = await service.create({ task: 'new task' });
+    const result = await service.create({ task: 'new task', userId: 1 });
     expect(result).toEqual({ id: 1, task: 'new task' });
     expect(prisma.todo.create).toHaveBeenCalledWith({
-      data: { task: 'new task' },
+      data: { task: 'new task', userId: 1 },
+      include: { user: { select: { username: true } } },
     });
   });
 
