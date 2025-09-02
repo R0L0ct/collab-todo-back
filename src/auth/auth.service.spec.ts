@@ -6,7 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { BadRequestException } from '@nestjs/common';
 
 jest.mock('bcrypt', () => {
-  return { compare: jest.fn() };
+  return { compare: jest.fn(), hash: jest.fn() };
 });
 
 describe('AuthService', () => {
@@ -17,9 +17,13 @@ describe('AuthService', () => {
   beforeEach(async () => {
     userService = {
       findOneByUsername: jest.fn(),
+      create: jest.fn(),
     };
+
     jwtService = {
       signAsync: jest.fn(),
+      verify: jest.fn(),
+      decode: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -84,5 +88,36 @@ describe('AuthService', () => {
     await expect(service.login('test-user', 'wrongPass')).rejects.toEqual(
       new BadRequestException(),
     );
+  });
+
+  it('should hash a password and call user service to create a user', async () => {
+    (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPass');
+    await service.register({
+      username: 'test-user',
+      password: 'test123',
+    });
+    expect(userService.create).toHaveBeenCalledWith({
+      username: 'test-user',
+      password: 'hashedPass',
+    });
+  });
+
+  it('should return a new access token', async () => {
+    jwtService.verify.mockResolvedValue(true);
+    jwtService.decode.mockResolvedValue({
+      exp: '123',
+      iat: '123',
+      username: 'test-user',
+      sub: 1,
+    });
+    jwtService.signAsync.mockResolvedValue('new-access-token');
+
+    const result = await service.refreshAccessToken('refresh-token');
+    expect(result).toEqual({
+      auth: {
+        access_token: 'new-access-token',
+        user: { username: 'test-user', userId: 1 },
+      },
+    });
   });
 });
