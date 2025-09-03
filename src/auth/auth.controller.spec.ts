@@ -6,6 +6,10 @@ describe('AuthController', () => {
   let controller: AuthController;
   let service: AuthService;
 
+  const mockResponse = {
+    cookie: jest.fn(),
+  };
+
   const mockAuthService = {
     login: jest.fn(),
     register: jest.fn(),
@@ -25,5 +29,38 @@ describe('AuthController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined();
     expect(service).toBeDefined();
+  });
+
+  it('should call service.login and res.cookie', async () => {
+    const authServiceResponse = {
+      refresh_token: 'refresh-token',
+      auth: {
+        access_token: 'access-token',
+        user: { username: 'test', userId: 1 },
+      },
+    };
+
+    mockAuthService.login.mockResolvedValue(authServiceResponse);
+
+    const result = await controller.login(
+      {
+        username: 'test',
+        password: 'test123',
+      },
+      mockResponse,
+    );
+
+    expect(service.login).toHaveBeenCalledWith('test', 'test123');
+    expect(mockResponse.cookie).toHaveBeenCalledWith(
+      'todo_refresh',
+      'refresh-token',
+      {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      },
+    );
+    expect(result).toEqual(authServiceResponse.auth);
   });
 });
