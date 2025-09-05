@@ -63,4 +63,19 @@ describe('AuthController', () => {
     );
     expect(result).toEqual(authServiceResponse.auth);
   });
+
+  it('should call service.register', async () => {
+    await controller.register({
+      username: 'test',
+      password: 'test123',
+    });
+    expect(service.register).toHaveBeenCalledWith({
+      username: 'test',
+      password: 'test123',
+    });
+  });
+
+  /* it('should call service.refreshAccessToken and return a new access token', () => { */
+  /*    */
+  /*   }); */
 });

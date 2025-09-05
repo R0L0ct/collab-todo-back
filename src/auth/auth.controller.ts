@@ -44,8 +44,7 @@ export class AuthController {
     @Body() user: { username: string; password: string },
   ): Promise<any> {
     try {
-      const response = await this.authService.register(user);
-      return response;
+      await this.authService.register(user);
     } catch (error) {
       throw error;
     }
