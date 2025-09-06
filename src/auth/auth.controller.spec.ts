@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { UnauthorizedException } from '@nestjs/common';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -8,6 +9,12 @@ describe('AuthController', () => {
 
   const mockResponse = {
     cookie: jest.fn(),
+  };
+
+  const mockRequest = {
+    cookies: {
+      todo_refresh: 'refresh_token',
+    },
   };
 
   const mockAuthService = {
@@ -75,7 +82,28 @@ describe('AuthController', () => {
     });
   });
 
-  /* it('should call service.refreshAccessToken and return a new access token', () => { */
-  /*    */
-  /*   }); */
+  describe('Refresh Access Token', () => {
+    it('should call service.refreshAccessToken and return a new access token', async () => {
+      const mockRefreshResponse = {
+        auth: {
+          access_token: 'access_token',
+          user: { username: 'test', userId: 1 },
+        },
+      };
+
+      mockAuthService.refreshAccessToken.mockResolvedValue(mockRefreshResponse);
+
+      const result = await controller.refreshAccessToken(mockRequest);
+
+      expect(service.refreshAccessToken).toHaveBeenCalledWith('refresh_token');
+      expect(result).toEqual(mockRefreshResponse.auth);
+    });
+
+    it('should throw an Exception if token is not defined', async () => {
+      const mockRequestWithoutToken = { cookies: {} };
+      await expect(
+        controller.refreshAccessToken(mockRequestWithoutToken),
+      ).rejects.toEqual(new UnauthorizedException('No refresh token found'));
+    });
+  });
 });
